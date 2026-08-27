@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+data/
+logs/
+checkpoints/
+*.npz
+*.pt
+results.csv

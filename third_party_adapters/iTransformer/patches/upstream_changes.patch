@@ -1,0 +1,98 @@
+diff --git a/data_provider/data_factory.py b/data_provider/data_factory.py
+index 51a5fc8..9edbd7f 100644
+--- a/data_provider/data_factory.py
++++ b/data_provider/data_factory.py
+@@ -1,5 +1,6 @@
+ from data_provider.data_loader import Dataset_ETT_hour, Dataset_ETT_minute, Dataset_Custom, Dataset_Solar, Dataset_PEMS, \
+     Dataset_Pred
++from data_provider.trajectory_loader import TrajectoryDataset
+ from torch.utils.data import DataLoader
+ 
+ data_dict = {
+@@ -10,6 +11,7 @@ data_dict = {
+     'Solar': Dataset_Solar,
+     'PEMS': Dataset_PEMS,
+     'custom': Dataset_Custom,
++    'porto': TrajectoryDataset,
+ }
+ 
+ 
+diff --git a/layers/SelfAttention_Family.py b/layers/SelfAttention_Family.py
+index 99b1b2a..d0b10f5 100644
+--- a/layers/SelfAttention_Family.py
++++ b/layers/SelfAttention_Family.py
+@@ -3,7 +3,10 @@ import torch.nn as nn
+ import numpy as np
+ from math import sqrt
+ from utils.masking import TriangularCausalMask, ProbMask
+-from reformer_pytorch import LSHSelfAttention
++try:
++    from reformer_pytorch import LSHSelfAttention
++except Exception:
++    LSHSelfAttention = None
+ from einops import rearrange
+ 
+ 
+@@ -304,6 +307,8 @@ class ReformerLayer(nn.Module):
+     def __init__(self, attention, d_model, n_heads, d_keys=None,
+                  d_values=None, causal=False, bucket_size=4, n_hashes=4):
+         super().__init__()
++        if LSHSelfAttention is None:
++            raise ImportError("reformer_pytorch is required when ReformerLayer is used")
+         self.bucket_size = bucket_size
+         self.attn = LSHSelfAttention(
+             dim=d_model,
+diff --git a/utils/metrics.py b/utils/metrics.py
+index b4f5a76..0d1bf81 100644
+--- a/utils/metrics.py
++++ b/utils/metrics.py
+@@ -1,41 +1,10 @@
+-import numpy as np
++import torch
+ 
+ 
+-def RSE(pred, true):
+-    return np.sqrt(np.sum((true - pred) ** 2)) / np.sqrt(np.sum((true - true.mean()) ** 2))
+-
+-
+-def CORR(pred, true):
+-    u = ((true - true.mean(0)) * (pred - pred.mean(0))).sum(0)
+-    d = np.sqrt(((true - true.mean(0)) ** 2 * (pred - pred.mean(0)) ** 2).sum(0))
+-    return (u / d).mean(-1)
+-
+-
+-def MAE(pred, true):
+-    return np.mean(np.abs(pred - true))
+-
+-
+-def MSE(pred, true):
+-    return np.mean((pred - true) ** 2)
+-
+-
+-def RMSE(pred, true):
+-    return np.sqrt(MSE(pred, true))
+-
+-
+-def MAPE(pred, true):
+-    return np.mean(np.abs((pred - true) / true))
+-
+-
+-def MSPE(pred, true):
+-    return np.mean(np.square((pred - true) / true))
+-
+-
+-def metric(pred, true):
+-    mae = MAE(pred, true)
+-    mse = MSE(pred, true)
+-    rmse = RMSE(pred, true)
+-    mape = MAPE(pred, true)
+-    mspe = MSPE(pred, true)
+-
+-    return mae, mse, rmse, mape, mspe
++def haversine_torch(pred, true):
++    R = 6371000.0
++    lat1, lon1 = torch.deg2rad(true[..., 0]), torch.deg2rad(true[..., 1])
++    lat2, lon2 = torch.deg2rad(pred[..., 0]), torch.deg2rad(pred[..., 1])
++    dlat, dlon = lat2 - lat1, lon2 - lon1
++    a = torch.sin(dlat / 2) ** 2 + torch.cos(lat1) * torch.cos(lat2) * torch.sin(dlon / 2) ** 2
++    return R * 2 * torch.atan2(torch.sqrt(a), torch.sqrt(1 - a))

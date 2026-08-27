@@ -1,0 +1,6 @@
+# Exact versions were not pinned during the experiments; these are the packages
+# the code imports, with conservative lower bounds.
+torch>=2.0
+numpy>=1.24
+pandas>=1.5
+tqdm>=4.64

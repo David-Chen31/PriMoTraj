@@ -1,0 +1,25 @@
+diff --git a/layers/SelfAttention_Family.py b/layers/SelfAttention_Family.py
+index 98f6beb..19375aa 100755
+--- a/layers/SelfAttention_Family.py
++++ b/layers/SelfAttention_Family.py
+@@ -6,7 +6,10 @@ from math import sqrt
+ from einops import rearrange, repeat
+ 
+ from utils.masking import TriangularCausalMask, ProbMask
+-from reformer_pytorch import LSHSelfAttention
++try:
++    from reformer_pytorch import LSHSelfAttention
++except Exception:
++    LSHSelfAttention = None
+ 
+ 
+ class DSAttention(nn.Module):
+@@ -219,6 +222,8 @@ class ReformerLayer(nn.Module):
+     def __init__(self, attention, d_model, n_heads, d_keys=None,
+                  d_values=None, causal=False, bucket_size=4, n_hashes=4):
+         super().__init__()
++        if LSHSelfAttention is None:
++            raise ImportError("reformer_pytorch is required when ReformerLayer is used")
+         self.bucket_size = bucket_size
+         self.attn = LSHSelfAttention(
+             dim=d_model,
