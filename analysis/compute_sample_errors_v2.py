@@ -107,6 +107,8 @@ def load_primotraj(checkpoint: Path, input_size: int, seq_len: int, pred_len: in
         motion_prior_residual_head=getattr(cfg, "motion_prior_residual_head", "none"),
         motion_prior_residual_hidden=getattr(cfg, "motion_prior_residual_hidden", 64),
         motion_prior_residual_init=getattr(cfg, "motion_prior_residual_init", 0.15),
+        motion_prior_experts=getattr(cfg, "motion_prior_experts", "closed_form"),
+        motion_prior_expert_hidden=getattr(cfg, "motion_prior_expert_hidden", 40),
     ).to(device)
     missing, unexpected = model.load_state_dict(state, strict=False)
     if missing or unexpected:

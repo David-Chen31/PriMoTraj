@@ -61,6 +61,8 @@ class PriMoTraj(nn.Module):
         motion_prior_residual_head='none',
         motion_prior_residual_hidden=64,
         motion_prior_residual_init=0.15,
+        motion_prior_experts='closed_form',
+        motion_prior_expert_hidden=40,
     ):
         super().__init__()
 
@@ -82,6 +84,15 @@ class PriMoTraj(nn.Module):
         if self.motion_prior_n_priors not in (5, 7):
             raise ValueError('motion_prior_n_priors must be 5 or 7')
         self.motion_prior_gate_horizon = max(1, int(motion_prior_gate_horizon))
+        # 'closed_form': the deterministic bank P1-P7 (deployed configuration).
+        # 'learned':     same router and the same total parameter budget, but the
+        #                experts are learned functions of the input window. Used
+        #                only for the matched-capacity mixture-of-experts control.
+        self.motion_prior_experts = str(motion_prior_experts)
+        if self.motion_prior_experts not in ('closed_form', 'learned'):
+            raise ValueError("motion_prior_experts must be 'closed_form' or 'learned'")
+        self.motion_prior_expert_hidden = int(motion_prior_expert_hidden)
+        
         self.motion_prior_residual_head = str(motion_prior_residual_head)
         self.register_buffer(
             '_motion_steps',
@@ -118,6 +129,19 @@ class PriMoTraj(nn.Module):
                 nn.GELU(),
                 nn.Linear(hidden, self.motion_prior_n_priors),
             )
+
+            if self.motion_prior_experts == 'learned':
+                # Matched-capacity control for the frozen prior bank: each expert
+                # is an anchored trajectory head sharing one trunk, so the router
+                # and the anchoring at p_T are identical to the deployed model and
+                # only the experts themselves change.
+                e_hidden = max(4, self.motion_prior_expert_hidden)
+                self.expert_head = nn.Sequential(
+                    nn.Linear(input_shape[0] * input_shape[-1], e_hidden),
+                    nn.GELU(),
+                    nn.Linear(e_hidden, self.motion_prior_n_priors * 2 * pred_len),
+                )
+
 
             if self.motion_prior_residual_head == 'full_window':
                 # Independent two-layer MLP over the whole input window,
@@ -228,6 +252,12 @@ class PriMoTraj(nn.Module):
 
         return torch.stack(priors, dim=1)
 
+    def _learned_expert_bank(self, raw_x, pred_len):
+        """Learned counterpart of the deterministic bank, anchored at p_T."""
+        out = self.expert_head(raw_x.reshape(raw_x.size(0), -1))
+        out = out.view(raw_x.size(0), self.motion_prior_n_priors, pred_len, 2)
+        return raw_x[:, -1:, :2].unsqueeze(1) + out
+
     def _apply_motion_prior(self, pred, raw_x):
         if self.motion_prior == 'none' or self.motion_prior_weight <= 0.0:
             return pred
@@ -238,7 +268,10 @@ class PriMoTraj(nn.Module):
             n_tail = min(self.motion_prior_gate_horizon, raw_x.size(1))
             gate_x = raw_x[:, -n_tail:, :].reshape(raw_x.size(0), -1)
             weights = torch.softmax(self.motion_gate(gate_x), dim=-1)
-            priors = self._motion_prior_bank(raw_x, pred[:, :, :2])
+            if self.motion_prior_experts == 'learned':
+                priors = self._learned_expert_bank(raw_x, pred.size(1))
+            else:
+                priors = self._motion_prior_bank(raw_x, pred[:, :, :2])
             base = (weights[:, :, None, None] * priors).sum(dim=1)
             if self.motion_prior_residual_head == 'full_window':
                 # Bounded full-window residual: lambda_r(h) * tanh(R_theta(X)(h)).

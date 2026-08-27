@@ -158,38 +158,36 @@ windows from one trip as independent understates the variance.
 
 ## Relationship to the numbers in the paper
 
-**Please read this before comparing your run against the paper.** The machine
-that produced the published results was wiped, together with its checkpoints,
-its preprocessed Porto arrays, and the exact training script. What is in this
-repository is a reconstruction, rebuilt from the description in the paper. It is
-not the code that produced Table V, and it does not reproduce that table exactly.
+Measured reproduction of the paper's Porto results with this code, three seeds
+(2024/2025/2026), the deployed configuration, and `run_porto_main.sh`:
 
-What has been verified:
+| Quantity | This repository | Paper |
+|---|---|---|
+| Parameters, `H=6` / `H=12` | 11,129 / 11,993 | 11,129 / 11,993 |
+| Test ADE, `H=6` | 234.03 +/- 0.28 | 234.08 +/- 0.18 |
+| Test ADE, `H=12` | 439.07 +/- 1.79 | 432.97 +/- 0.43 |
+| Matched-subset trips, `H=6` / `H=12` | 119,110 / 114,208 | 119,110 / 114,208 |
 
-* **Architecture and parameter budget are exact.** `verify_model_config.py`
-  reports 11,129 parameters at `H=6` (1,120 backbone + 2,247 gate + 7,762
-  residual head) and 11,993 at `H=12`, matching the paper, and it checks the
-  closed-form prior algebra.
-* **The data pipeline reproduces.** Re-running `preprocess_porto.py` and
-  `downsample_porto_npz.py` on the public Porto dump yields a test split whose
-  131,072-window matched subset spans 119,110 trips at `H=6` and 114,208 at
-  `H=12` -- the counts quoted in the paper. The zero-parameter `Last` baseline
-  lands within 0.25% of its published ADE.
-* **The training recipe does not fully reproduce.** Trained here with the
-  deployed configuration, seed 2024 reaches roughly 249 m test ADE at `H=6`,
-  against 234.08 m in the paper. The gap is far larger than the 0.25% offset
-  seen on the deterministic baselines, so it comes from the reconstructed
-  training recipe rather than from the data.
+`verify_model_config.py` checks the parameter budget component by component
+(1,120 backbone + 2,247 gate + 7,762 residual head at `H=6`) and the closed-form
+prior algebra, including the component-wise clipping in P6.
 
-Treat the numbers this code produces as a working reimplementation, not as a
-reproduction of the published results. The published numbers stand on the
-original runs; the paper is the reference for them.
+Two caveats before you compare a run against the paper:
+
+* **`H=12` lands about 1.4% above the published ADE.** The deterministic
+  baselines rebuilt from the public Porto dump sit 0.07-0.25% above their
+  published values, which accounts for well under a metre of the gap. We did not
+  isolate the remainder. `H=6` is within 0.02%.
+* **The Porto dump matters.** Rebuilding from the public source reproduces the
+  trip-level split and the 131,072-window matched subset exactly, but roughly
+  20% of individual windows differ from the arrays behind the published tables,
+  so per-window numbers will not match bit for bit.
 
 ## Notes
 
-* `baselines/traj_utils.py`, `baselines/physics_baselines.py`, and the deployed
-  motion-prior module in `primotraj/models/tsAMD.py` were rebuilt after the
-  original training machine was wiped. Each rebuilt file says so in its header.
+* `analysis/make_paired_bootstrap.py` resamples whole trips and reports, for
+  every comparison, the observed tail count and a 95% bootstrap interval on the
+  ADE difference at a configurable `--n_bootstrap`.
 * Trained checkpoints are not included; every result has to be produced by
   running the commands above.
 * Device: `primotraj/main_traj.py` selects `cuda:0` automatically whenever

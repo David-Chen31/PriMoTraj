@@ -19,7 +19,7 @@ together with the training server. It has been rebuilt from:
   ``benchmarks/scripts/update_formal_registry.py`` can parse new runs.
 
 The numbers already recorded in ``benchmarks/results/`` were produced by the
-original file. Re-running this reconstruction should reproduce Last / CV /
+original file. Re-running this module should reproduce Last / CV /
 CVMix closely (they are closed-form), while CV-KF depends on filter details
 that the logs pin down only through its tuned ``q`` / ``r`` / ``damping``
 values, so treat re-run CV-KF numbers as a re-derivation rather than a bitwise
