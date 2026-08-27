@@ -10,8 +10,8 @@ import torch
 
 ROOT = Path(__file__).resolve().parents[1]
 # Release layout ships the model under primotraj/; the development tree used
-# LiteMoTraj/. Accept either so the script runs from both.
-LITE_ROOT = ROOT / "primotraj" if (ROOT / "primotraj").is_dir() else ROOT / "LiteMoTraj"
+# an older layout. Accept either so the script runs from both.
+LITE_ROOT = ROOT / "primotraj" if (ROOT / "primotraj").is_dir() else ROOT / "src"
 for item in (str(ROOT), str(LITE_ROOT)):
     if item not in sys.path:
         sys.path.insert(0, item)

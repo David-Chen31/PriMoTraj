@@ -14,9 +14,8 @@ import torch
 
 
 ROOT = Path(__file__).resolve().parents[1]
-# Release layout ships the model under primotraj/; the development tree used
-# LiteMoTraj/. MODEL_ROOT resolves to whichever is present.
-MODEL_ROOT = ROOT / "primotraj" if (ROOT / "primotraj").is_dir() else MODEL_ROOT
+# Release layout ships the model under primotraj/; an older layout used src/.
+MODEL_ROOT = ROOT / "primotraj" if (ROOT / "primotraj").is_dir() else ROOT / "src"
 
 
 def add_path(path: Path) -> None:
@@ -44,7 +43,7 @@ def namespace_from(defaults: dict, args_dict: dict):
     return argparse.Namespace(**merged)
 
 
-def load_litemotraj(checkpoint: Path, input_size: int, seq_len: int, pred_len: int, device):
+def load_primotraj(checkpoint: Path, input_size: int, seq_len: int, pred_len: int, device):
     add_path(MODEL_ROOT)
     from models.tsAMD import AMD
 
@@ -256,7 +255,7 @@ def forward_model(model, model_type: str, x):
 def main() -> None:
     parser = argparse.ArgumentParser("Compute sample-level trajectory errors")
     parser.add_argument("--model_type", required=True,
-                        choices=["litemotraj_gate", "patchtst", "timemixer", "lstm", "last", "cv", "cvmix", "cv_kf"])
+                        choices=["primotraj", "patchtst", "timemixer", "lstm", "last", "cv", "cvmix", "cv_kf"])
     parser.add_argument("--checkpoint", default="")
     parser.add_argument("--data_path", required=True)
     parser.add_argument("--dataset", default="Porto-15s-s12")
@@ -294,8 +293,8 @@ def main() -> None:
     input_size = int(loader_owner.n_feature)
 
     ckpt = Path(args.checkpoint) if args.checkpoint else None
-    if args.model_type == "litemotraj_gate":
-        model = load_litemotraj(ckpt, input_size, args.seq_len, args.pred_len, device)
+    if args.model_type == "primotraj":
+        model = load_primotraj(ckpt, input_size, args.seq_len, args.pred_len, device)
     elif args.model_type == "patchtst":
         model = load_patchtst(ckpt, input_size, args.seq_len, args.pred_len, device)
     elif args.model_type == "timemixer":

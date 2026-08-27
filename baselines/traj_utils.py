@@ -7,14 +7,14 @@ with the training server. It has been rebuilt from the surviving call sites
 ``benchmarks/scripts/compute_sample_errors_v2.py``,
 ``benchmarks/scripts/profile_online_latency_v2.py``,
 ``benchmarks/scripts/run_extended_sota_adapters.py``) and from the equivalent
-implementations that survived inside ``LiteMoTraj/utils/traj_dataloader.py``,
-``LiteMoTraj/main_traj.py`` and ``PatchTST/PatchTST_supervised/main_traj.py``.
+implementations that survived inside ``primotraj/utils/traj_dataloader.py``,
+``primotraj/main_traj.py`` and ``PatchTST/PatchTST_supervised/main_traj.py``.
 
 Convention (fixed by the call sites): this loader yields **raw, un-normalized**
 windows, and callers normalize explicitly with ``(batch - mean) / std``. That is
 why ``mean`` / ``std`` are passed into ``evaluate_model`` and
 ``benchmark_inference_ms``. It is the one deliberate difference from
-``LiteMoTraj/utils/traj_dataloader.py``, which normalizes inside ``_load``.
+``primotraj/utils/traj_dataloader.py``, which normalizes inside ``_load``.
 """
 
 import os

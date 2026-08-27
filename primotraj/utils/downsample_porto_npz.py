@@ -147,8 +147,8 @@ def main():
     parser.add_argument("--min_len", type=int, default=18)
     parser.add_argument("--report_seq_len", type=int, default=12)
     parser.add_argument("--report_pred_lens", nargs="+", type=int, default=[3, 6, 12, 24])
-    parser.add_argument("--stats_csv", default="/root/AMD2/benchmarks/results/porto_downsample_stats_v2.csv")
-    parser.add_argument("--stats_md", default="/root/AMD2/benchmarks/results/porto_downsample_stats_v2.md")
+    parser.add_argument("--stats_csv", default="porto_downsample_stats.csv")
+    parser.add_argument("--stats_md", default="porto_downsample_stats.md")
     args = parser.parse_args()
 
     raw = np.load(args.input)

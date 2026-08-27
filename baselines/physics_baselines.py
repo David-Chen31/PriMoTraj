@@ -13,7 +13,7 @@ together with the training server. It has been rebuilt from:
 * the exact command lines recorded in ``benchmarks/logs_*/Physics*.log``
   (``--mode {last,cv,cvmix,cv_kf} --recent_steps --mix_weight --tune_kf
   --tune_max_batches``);
-* the prior formulas that survived in ``LiteMoTraj/models/tsAMD.py``
+* the prior formulas that survived in ``primotraj/models/tsAMD.py``
   (``_motion_prior_bank``), which the paper's prior bank is built from;
 * the stdout/BENCHMARK line format of the surviving physics logs, so
   ``benchmarks/scripts/update_formal_registry.py`` can parse new runs.

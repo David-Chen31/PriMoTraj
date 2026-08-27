@@ -134,7 +134,7 @@ figure:
 ```bash
 # Per-window ADE/FDE on the 131,072-window matched test subset, plus the trip id
 # of every retained window.
-python analysis/compute_sample_errors_v2.py --model_type litemotraj_gate \
+python analysis/compute_sample_errors_v2.py --model_type primotraj \
   --checkpoint checkpoints/PriMoTraj/seed2026_pred6/best.pt \
   --data_path data/porto_ds15.npz --pred_len 6 --use_gpu \
   --output errors/PriMoTraj_p6.npz

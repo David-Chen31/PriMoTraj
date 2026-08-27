@@ -51,7 +51,7 @@ COLORS = {
 }
 
 STYLE = {
-    "LiteMoTrajGate": {"color": COLORS["gate"], "marker": "*", "size": 98, "z": 7, "label": "PriMoTraj"},
+    "PriMoTrajGate": {"color": COLORS["gate"], "marker": "*", "size": 98, "z": 7, "label": "PriMoTraj"},
     "PriMoTraj": {"color": COLORS["gate"], "marker": "*", "size": 98, "z": 7, "label": "PriMoTraj"},
     "LSTM": {"color": COLORS["lstm"], "marker": "o", "size": 45, "z": 6, "label": "LSTM"},
     "PatchTST": {"color": COLORS["patch"], "marker": "s", "size": 45, "z": 5, "label": "PatchTST"},
@@ -72,12 +72,12 @@ LATENCY_NAME = {
 
 LABEL_OFFSETS = {
     ("params_plot", "PriMoTraj"): (-6, -1, "right"),
-    ("params_plot", "LiteMoTrajGate"): (5, -1),
+    ("params_plot", "PriMoTrajGate"): (5, -1),
     ("params_plot", "LSTM"): (5, 1),
     ("params_plot", "PatchTST"): (5, 1),
     ("params_plot", "DLinear"): (5, 0),
     ("cpu_b1_p50_ms", "PriMoTraj"): (5, -1),
-    ("cpu_b1_p50_ms", "LiteMoTrajGate"): (5, -1),
+    ("cpu_b1_p50_ms", "PriMoTrajGate"): (5, -1),
     ("cpu_b1_p50_ms", "LSTM"): (5, 1),
     ("cpu_b1_p50_ms", "PatchTST"): (5, 1),
     ("cpu_b1_p50_ms", "DLinear"): (5, 0),
@@ -116,7 +116,7 @@ def draw_point(ax, row, x_col: str):
             zorder=cfg["z"] - 0.2,
         )
     face = cfg["color"] if h == 6 else "white"
-    alpha = 0.94 if row["model"] in {"PriMoTraj", "LiteMoTrajGate", "LSTM", "PatchTST", "TimeMixer", "DLinear"} else 0.64
+    alpha = 0.94 if row["model"] in {"PriMoTraj", "PriMoTrajGate", "LSTM", "PatchTST", "TimeMixer", "DLinear"} else 0.64
     ax.scatter(
         row[x_col],
         row["ade_mean"],
@@ -131,7 +131,7 @@ def draw_point(ax, row, x_col: str):
 
 
 def annotate_anchor(ax, row, x_col: str) -> None:
-    if row["model"] not in {"PriMoTraj", "LiteMoTrajGate", "LSTM", "PatchTST", "DLinear"}:
+    if row["model"] not in {"PriMoTraj", "PriMoTrajGate", "LSTM", "PatchTST", "DLinear"}:
         return
     if int(row["pred_len"]) != 12:
         return

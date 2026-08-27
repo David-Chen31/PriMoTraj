@@ -1,5 +1,5 @@
 """
-Preprocess Argoverse 2 motion-forecasting test split into AMD/LiteMoTraj npz format.
+Preprocess Argoverse 2 motion-forecasting test split into PriMoTraj npz format.
 
 Output format is compatible with existing trajectory loaders in this repo:
     all_data:     (N_total, 9) float32
@@ -20,9 +20,9 @@ Notes:
   targets and observed focal-track points from scenario parquet as history.
 
 Usage:
-    python LiteMoTraj/utils/preprocess_av2.py \
-        --input_root /root/autodl-tmp/data/av2_data/motion_forecasting \
-        --output /root/AMD2/data/av2_focal_processed.npz
+    python primotraj/utils/preprocess_av2.py \
+        --input_root data/av2_motion_forecasting \
+        --output data/av2_focal_processed.npz
 """
 
 from __future__ import annotations
@@ -129,11 +129,11 @@ def _load_focal_annotations(path: Path, pred_len: int) -> dict[str, tuple[str, n
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Preprocess AV2 into AMD/LiteMoTraj npz format")
+    parser = argparse.ArgumentParser(description="Preprocess AV2 into PriMoTraj npz format")
     parser.add_argument(
         "--input_root",
         type=str,
-        default="/root/autodl-tmp/data/av2_data/motion_forecasting",
+        default="data/av2_motion_forecasting",
         help="AV2 motion_forecasting root directory",
     )
     parser.add_argument(
@@ -142,7 +142,7 @@ def main() -> None:
         default="",
         help="Path to focal annotation parquet. Empty means auto-detect under input_root.",
     )
-    parser.add_argument("--output", type=str, default="/root/AMD2/data/av2_focal_processed.npz")
+    parser.add_argument("--output", type=str, default="data/av2_focal_processed.npz")
     parser.add_argument("--obs_len", type=int, default=50, help="Observed history length")
     parser.add_argument("--pred_len", type=int, default=60, help="Future length from annotation")
     parser.add_argument("--dt_sec", type=float, default=0.1, help="AV2 sampling interval in seconds")
